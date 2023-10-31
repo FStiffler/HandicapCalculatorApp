@@ -40,9 +40,12 @@ ui <- fluidPage(
         # output panel
         mainPanel(
           
-          # output table with course information
-          h4(textOutput("courseHandicapTitle")),
-          tableOutput("courseHandicapTable")
+          # output table with general tee information depending on inputs
+          h4(textOutput("generalTeeInformationTitle")),
+          tableOutput("generalTeeInformationTable"),
+          
+          # output table with general information about the selected course
+          tableOutput("courseInformationTable")
            
         )
     )
@@ -52,36 +55,36 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   
-  # create output table title with most relevant information
-  output$courseHandicapTitle <- renderText(
+  # create title with selected club and tee as information
+  output$generalTeeInformationTitle <- renderText(
     
     expr = {paste0(input$club,", Abschlag ",input$tee)}
     
   )
   
   
-  # create output table with course information
-  output$courseHandicapTable <- renderTable(
+  # create output table with general information about selected tee
+  output$generalTeeInformationTable <- renderTable(
     
     # code to create table
     exp = {
     
-    # filter course data based on input values
-    courseData <- COURSE_INFORMATION%>%
+    # filter tee data based on input values
+    teeData <- TEE_INFORMATION%>%
       filter(club==club&tee==input$tee)
     
     # calculate course handicap
-    courseHandicap <- calculate_course_handicap(input$handicapIndex, courseData$courseRating, courseData$slopeRating, courseData$par)
+    courseHandicap <- calculate_course_handicap(input$handicapIndex, teeData$courseRating, teeData$slopeRating, teeData$par)
     
     # create table
     res <- data.frame(values=c(as.character(input$handicapIndex),
-                               as.character(courseData$courseRating),
-                               as.character(courseData$slopeRating),
-                               as.character(courseData$par),
+                               as.character(teeData$courseRating),
+                               as.character(teeData$slopeRating),
+                               as.character(teeData$par),
                                as.character(courseHandicap)
                                )
                       )
-    rowNames<-c("Aktuelles Handicap", "Course Rating", "Slope Rating", "PAR", "Spielvorgabe")
+    rowNames<-c("Aktuelles Handicap", "Course Rating", "Slope Rating", "PAR", "Platz Handicap")
     row.names(res)<-rowNames
     
     # print final table
@@ -94,6 +97,34 @@ server <- function(input, output) {
     colnames = FALSE,
     striped = TRUE
     )
+  
+  # create output table with course information per hole
+  output$courseInformationTable <- renderTable(
+    
+    # code to create table
+    exp = {
+      
+      # filter course data based on input values
+      courseData <- COURSE_INFORMATION%>%
+        filter(club==club&tee==input$tee)%>%
+        select(-club, -tee)%>%
+        rename("Loch"=hole, "Hcp."=hcp, PAR="par")
+      
+      # create table
+      res <- courseData
+      
+      # print final table
+      res
+      
+    },
+    
+    # adjust other table parameters
+    rownames = FALSE,
+    colnames = TRUE,
+    striped = TRUE,
+    digits = 0
+  )
+  
 }
 
 # run the application 
