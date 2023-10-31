@@ -54,6 +54,27 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output) {
   
+  ## reactive variables
+  
+  # reactive table with current tee information based on inputs
+  teeData <- reactive({
+    
+    # filter tee information based on inputs
+    TEE_INFORMATION%>%
+      filter(club==input$club&tee==input$tee)
+    
+    })
+  
+  # reactive variable to calculate course handicap based on input
+  courseHandicap <- reactive({
+    
+    # calculate course handicap
+    calculate_course_handicap(input$handicapIndex, teeData()$courseRating, teeData()$slopeRating, teeData()$par)
+    
+  })
+  
+  
+  ## output elements
   
   # create title with selected club and tee as information
   output$generalTeeInformationTitle <- renderText(
@@ -69,19 +90,12 @@ server <- function(input, output) {
     # code to create table
     exp = {
     
-    # filter tee data based on input values
-    teeData <- TEE_INFORMATION%>%
-      filter(club==club&tee==input$tee)
-    
-    # calculate course handicap
-    courseHandicap <- calculate_course_handicap(input$handicapIndex, teeData$courseRating, teeData$slopeRating, teeData$par)
-    
     # create table
     res <- data.frame(values=c(as.character(input$handicapIndex),
-                               as.character(teeData$courseRating),
-                               as.character(teeData$slopeRating),
-                               as.character(teeData$par),
-                               as.character(courseHandicap)
+                               as.character(teeData()$courseRating),
+                               as.character(teeData()$slopeRating),
+                               as.character(teeData()$par),
+                               as.character(courseHandicap())
                                )
                       )
     rowNames<-c("Aktuelles Handicap", "Course Rating", "Slope Rating", "PAR", "Spielvorgabe")
@@ -104,15 +118,12 @@ server <- function(input, output) {
     # code to create table
     exp = {
       
-      # this table requires the courseHandicap
-      req(courseHandicap)
-      
       # filter course data based on input values
       courseData <- COURSE_INFORMATION%>%
         filter(club==club&tee==input$tee)
       
       # calculate additional strokes per hole based on course handicap
-      courseData<-calculate_additional_strokes(courseData, courseHandicap)
+      courseData<-calculate_additional_strokes(courseData, courseHandicap())
       
       # table cosmetics
       courseData<-courseData%>%
