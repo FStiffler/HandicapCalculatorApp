@@ -1,50 +1,76 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
+# load required packages
 library(shiny)
+library(tidyverse)
 
-# Define UI for application that draws a histogram
+# load helper files
+source("helperFiles/loadParameters.R")
+source("helperFiles/helperFunctions.R")
+
+# Define UI 
 ui <- fluidPage(
 
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
+    titlePanel("Handicap Rechner"),
 
-    # Sidebar with a slider input for number of bins 
+    # Sidebar
     sidebarLayout(
         sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
+            numericInput(inputId = "handicapIndex",
+                         label = "Aktuelles Handicap",
+                         value = 54,
+                         min = 0,
+                         max = 54,
+                         step = 1),
+            selectInput(inputId = "club",
+                        label = "Golfklub",
+                        choices = LIST_OF_CLUBS),
+            selectInput(inputId = "tee",
+                        label = "Abschlag",
+                        choices = LIST_OF_TEES),
         ),
 
-        # Show a plot of the generated distribution
+        # Show output
         mainPanel(
-           plotOutput("distPlot")
+           tableOutput("courseHandicap")
         )
     )
 )
 
-# Define server logic required to draw a histogram
+# Define server logic
 server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white',
-             xlab = 'Waiting time to next eruption (in mins)',
-             main = 'Histogram of waiting times')
-    })
+  
+  output$courseHandicap <- renderTable(
+    
+    exp = {
+    
+    # filter course data based on input values
+    courseData <- COURSE_INFORMATION%>%
+      filter(club==club&tee==input$tee)
+    
+    # calculate course handicap
+    courseHandicap <- calculate_course_handicap(input$handicapIndex, courseData$courseRating, courseData$slopeRating, courseData$par)
+    
+    # create table
+    res <- data.frame(values=c(as.character(input$handicapIndex),
+                               as.character(courseData$courseRating),
+                               as.character(courseData$slopeRating),
+                               as.character(courseData$par),
+                               as.character(courseHandicap)
+                               )
+                      )
+    rowNames<-c("Aktuelles Handicap", "Course Rating", "Slope Rating", "PAR", "Spielvorgabe")
+    row.names(res)<-rowNames
+    
+    # print final table
+    res
+    
+    },
+    
+    # adjust other table parameters
+    rownames = TRUE,
+    colnames = FALSE,
+    striped = TRUE
+    )
 }
 
 # Run the application 
