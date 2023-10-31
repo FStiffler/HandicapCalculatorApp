@@ -6,32 +6,43 @@ library(tidyverse)
 source("helperFiles/loadParameters.R")
 source("helperFiles/helperFunctions.R")
 
-# Define UI 
+# define UI 
 ui <- fluidPage(
 
-    # Application title
+    # application title
     titlePanel("Handicap Rechner"),
 
-    # Sidebar
+    # sidebar
     sidebarLayout(
+      
+        # input panel
         sidebarPanel(
+            
+            # numeric input for handicap index
             numericInput(inputId = "handicapIndex",
                          label = "Aktuelles Handicap",
                          value = 54,
                          min = 0,
                          max = 54,
                          step = 1),
+            
+            # single choice for golf club selection
             selectInput(inputId = "club",
                         label = "Golfklub",
                         choices = LIST_OF_CLUBS),
+            
+            # single choice for tee selection
             selectInput(inputId = "tee",
                         label = "Abschlag",
                         choices = LIST_OF_TEES),
         ),
 
-        # Show output
+        # output panel
         mainPanel(
-           tableOutput("courseHandicap")
+          
+          # output table with course information
+          tableOutput("courseHandicap")
+           
         )
     )
 )
@@ -39,8 +50,10 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output) {
   
+  # create output table with course information
   output$courseHandicap <- renderTable(
     
+    # code to create table
     exp = {
     
     # filter course data based on input values
@@ -73,5 +86,5 @@ server <- function(input, output) {
     )
 }
 
-# Run the application 
+# run the application 
 shinyApp(ui = ui, server = server)
