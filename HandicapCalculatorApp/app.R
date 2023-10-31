@@ -84,7 +84,7 @@ server <- function(input, output) {
                                as.character(courseHandicap)
                                )
                       )
-    rowNames<-c("Aktuelles Handicap", "Course Rating", "Slope Rating", "PAR", "Platz Handicap")
+    rowNames<-c("Aktuelles Handicap", "Course Rating", "Slope Rating", "PAR", "Spielvorgabe")
     row.names(res)<-rowNames
     
     # print final table
@@ -104,17 +104,23 @@ server <- function(input, output) {
     # code to create table
     exp = {
       
+      # this table requires the courseHandicap
+      req(courseHandicap)
+      
       # filter course data based on input values
       courseData <- COURSE_INFORMATION%>%
-        filter(club==club&tee==input$tee)%>%
-        select(-club, -tee)%>%
-        rename("Loch"=hole, "Hcp."=hcp, PAR="par")
+        filter(club==club&tee==input$tee)
       
-      # create table
-      res <- courseData
+      # calculate additional strokes per hole based on course handicap
+      courseData<-calculate_additional_strokes(courseData, courseHandicap)
+      
+      # table cosmetics
+      courseData<-courseData%>%
+        select(-club, -tee)%>%
+        rename("Loch"=hole, "Hcp."=hcp, "PAR"=par, "Vorgabe"=additionalStrokes)
       
       # print final table
-      res
+      courseData
       
     },
     
