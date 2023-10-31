@@ -41,7 +41,8 @@ ui <- fluidPage(
         mainPanel(
           
           # output table with course information
-          tableOutput("courseHandicap")
+          h4(textOutput("courseHandicapTitle")),
+          tableOutput("courseHandicapTable")
            
         )
     )
@@ -50,8 +51,17 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output) {
   
+  
+  # create output table title with most relevant information
+  output$courseHandicapTitle <- renderText(
+    
+    expr = {paste0(input$club,", Abschlag ",input$tee)}
+    
+  )
+  
+  
   # create output table with course information
-  output$courseHandicap <- renderTable(
+  output$courseHandicapTable <- renderTable(
     
     # code to create table
     exp = {
