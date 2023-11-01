@@ -155,7 +155,7 @@ server <- function(input, output) {
       # print final table
       datatable(courseInformation$data%>%
                   rename("Loch"=hole, "Hcp."=hcp, "PAR"=par, "Vorgabe"=additionalStrokes, "Netto-PAR"=nettoPar, "Schläge"=strokes, "Über PAR"=overPar,
-                                                "Über Netto-PAR"=overNettoPar, "Stableford-Punkte"=stablefordPoints),
+                                                "Über Netto-PAR"=overNettoPar, "Stableford-Punkte Netto"=stablefordPoints),
                 rownames = FALSE,
                 filter = "none", # no filter options
                 selection = "none", # no selection of rows

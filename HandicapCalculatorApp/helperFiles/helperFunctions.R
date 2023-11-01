@@ -73,7 +73,15 @@ calculate_additional_strokes<-function(courseData, courseHandicap){
 #' calculate_stableford_points(0)
 calculate_stableford_points <- function(overNettoPar){
 
-  if(overNettoPar==-4){
+  if(overNettoPar==-8){
+    stablefordPoints <- 10
+  }else if(overNettoPar==-7){
+    stablefordPoints <- 9
+  }else if(overNettoPar==-6){
+    stablefordPoints <- 8
+  }else if(overNettoPar==-5){
+    stablefordPoints <- 7
+  }else if(overNettoPar==-4){
     stablefordPoints <- 6
   }else if(overNettoPar==-3){
     stablefordPoints <- 5
@@ -88,7 +96,7 @@ calculate_stableford_points <- function(overNettoPar){
   }else if(overNettoPar>=2){
     stablefordPoints <- 0
   }else{
-    stop("Invalid number of strokes")
+    warning("Invalid number of strokes")
   }
   
 }
