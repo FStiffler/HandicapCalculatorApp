@@ -57,3 +57,38 @@ calculate_additional_strokes<-function(courseData, courseHandicap){
   return(courseDataOut)
   
 }
+
+
+#' Calculate stableford points based on number of strokes
+#' 
+#' Assigns points based on the registered number of strokes. The points are assigned
+#' with reference to netto PAR. 
+#'
+#' @param overNettoPar 
+#'
+#' @return # The corresponding stableford points based on the number of strokes
+#' @export
+#'
+#' @examples
+#' calculate_stableford_points(0)
+calculate_stableford_points <- function(overNettoPar){
+
+  if(overNettoPar==-4){
+    stablefordPoints <- 6
+  }else if(overNettoPar==-3){
+    stablefordPoints <- 5
+  }else if(overNettoPar==-2){
+    stablefordPoints <- 4
+  }else if(overNettoPar==-1){
+    stablefordPoints <- 3
+  }else if(overNettoPar==0){
+    stablefordPoints <- 2
+  }else if(overNettoPar==1){
+    stablefordPoints <- 1
+  }else if(overNettoPar>=2){
+    stablefordPoints <- 0
+  }else{
+    stop("Invalid number of strokes")
+  }
+  
+}

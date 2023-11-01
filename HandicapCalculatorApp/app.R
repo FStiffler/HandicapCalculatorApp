@@ -1,6 +1,7 @@
 # load required packages
 library(shiny)
 library(tidyverse)
+library(DT)
 
 # load helper files
 source("helperFiles/loadParameters.R")
@@ -45,7 +46,7 @@ ui <- fluidPage(
           tableOutput("generalTeeInformationTable"),
           
           # output table with general information about the selected course
-          tableOutput("courseInformationTable")
+          DTOutput("courseInformationTable")
            
         )
     )
@@ -70,6 +71,29 @@ server <- function(input, output) {
     
     # calculate course handicap
     calculate_course_handicap(input$handicapIndex, teeData()$courseRating, teeData()$slopeRating, teeData()$par)
+    
+  })
+  
+  # reactive table with current course information for each hole based on inputs
+  courseData <- reactive({
+    
+    # filter course data based on input values
+    courseData <- COURSE_INFORMATION%>%
+      filter(club==club&tee==input$tee)
+    
+    # calculate additional strokes per hole based on course handicap and add them to table
+    courseData<-calculate_additional_strokes(courseData, courseHandicap())
+    
+    # calculate additional fields
+    courseData<-courseData%>%
+      mutate(nettoPar = par+additionalStrokes)%>%
+      mutate(strokes = nettoPar)%>%
+      mutate(overPar = strokes-par,
+             overNettoPar = strokes-nettoPar)%>%
+      mutate(stablefordPoints = map_dbl(overNettoPar, calculate_stableford_points))%>%
+      select(-club, -tee)%>%
+      rename("Loch"=hole, "Hcp."=hcp, "PAR"=par, "Vorgabe"=additionalStrokes, "Netto-PAR"=nettoPar, "Schläge"=strokes, "Über PAR"=overPar,
+             "Über Netto-PAR"=overNettoPar, "Stableford-Punkte"=stablefordPoints)
     
   })
   
@@ -113,33 +137,24 @@ server <- function(input, output) {
     )
   
   # create output table with course information per hole
-  output$courseInformationTable <- renderTable(
+  output$courseInformationTable <- renderDT(
     
     # code to create table
     exp = {
       
-      # filter course data based on input values
-      courseData <- COURSE_INFORMATION%>%
-        filter(club==club&tee==input$tee)
-      
-      # calculate additional strokes per hole based on course handicap
-      courseData<-calculate_additional_strokes(courseData, courseHandicap())
-      
-      # table cosmetics
-      courseData<-courseData%>%
-        select(-club, -tee)%>%
-        rename("Loch"=hole, "Hcp."=hcp, "PAR"=par, "Vorgabe"=additionalStrokes)
       
       # print final table
-      courseData
+      datatable(courseData(),
+                rownames = FALSE,
+                filter = "none", # no filter options
+                selection = "none", # no selection of rows
+                options = list(pageLength = 18, # show all entries
+                               dom="t" # show only table (no search field, no page scroll, etc.)
+                               ),
+                editable = list(target = "column", disable = list(columns = c(0:4,6:8)))
+                )
       
-    },
-    
-    # adjust other table parameters
-    rownames = FALSE,
-    colnames = TRUE,
-    striped = TRUE,
-    digits = 0
+    }
   )
   
 }
