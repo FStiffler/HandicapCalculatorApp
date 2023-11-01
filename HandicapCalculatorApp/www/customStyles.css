@@ -1,0 +1,14 @@
+
+
+tr.odd { background-color: white; }
+tr.even { background-color: white; }
+
+#courseInformationTable tbody tr td:nth-child(6){
+  background-color: #dbc21f;
+  font-weight: bold;
+}
+
+h4 {
+  color: red;
+}
+

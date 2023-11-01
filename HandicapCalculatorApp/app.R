@@ -9,6 +9,11 @@ source("helperFiles/helperFunctions.R")
 
 # define UI 
 ui <- fluidPage(
+  
+    # include custom style sheet
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "customStyles.css")
+    ),
 
     # application title
     titlePanel("Handicap Rechner"),
