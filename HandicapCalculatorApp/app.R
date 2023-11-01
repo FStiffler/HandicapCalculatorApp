@@ -57,7 +57,7 @@ server <- function(input, output) {
   
   ## reactive variables
   
-  # reactive table with current tee information based on inputs
+  # reactive table with current tee information which immediately updates when inputs change
   teeData <- reactive({
     
     # filter tee information based on inputs
@@ -66,7 +66,7 @@ server <- function(input, output) {
     
     })
   
-  # reactive variable to calculate course handicap based on input
+  # reactive variable to calculate course handicap which immediately updates when inputs change
   courseHandicap <- reactive({
     
     # calculate course handicap
@@ -74,26 +74,39 @@ server <- function(input, output) {
     
   })
   
-  # reactive table with current course information for each hole based on inputs
-  courseData <- reactive({
+  
+  # initialize empty reactive value as placeholder for course information to be updated when user interacts with UI
+  courseInformation <- reactiveValues(data=NULL)
+  
+  # reactive table with course information which is updated whenever user updates input variables
+  newData <- reactive({
     
     # filter course data based on input values
-    courseData <- COURSE_INFORMATION%>%
+    newCourseData <- COURSE_INFORMATION%>%
       filter(club==club&tee==input$tee)
     
     # calculate additional strokes per hole based on course handicap and add them to table
-    courseData<-calculate_additional_strokes(courseData, courseHandicap())
+    newCourseData<-calculate_additional_strokes(newCourseData, courseHandicap())
     
     # calculate additional fields
-    courseData<-courseData%>%
+    newCourseData<-newCourseData%>%
       mutate(nettoPar = par+additionalStrokes)%>%
       mutate(strokes = nettoPar)%>%
       mutate(overPar = strokes-par,
              overNettoPar = strokes-nettoPar)%>%
       mutate(stablefordPoints = map_dbl(overNettoPar, calculate_stableford_points))%>%
-      select(-club, -tee)%>%
-      rename("Loch"=hole, "Hcp."=hcp, "PAR"=par, "Vorgabe"=additionalStrokes, "Netto-PAR"=nettoPar, "Schläge"=strokes, "Über PAR"=overPar,
-             "Über Netto-PAR"=overNettoPar, "Stableford-Punkte"=stablefordPoints)
+      select(-club, -tee)
+    
+    # print value
+    newCourseData
+    
+  })
+  
+  # as soon as any changes in the input parameters happen, assign the updated table as reactive value
+  observe({
+    
+    # update course information data
+    courseInformation$data = newData()
     
   })
   
@@ -138,24 +151,42 @@ server <- function(input, output) {
   
   # create output table with course information per hole
   output$courseInformationTable <- renderDT(
-    
-    # code to create table
-    exp = {
-      
       
       # print final table
-      datatable(courseData(),
+      datatable(courseInformation$data%>%
+                  rename("Loch"=hole, "Hcp."=hcp, "PAR"=par, "Vorgabe"=additionalStrokes, "Netto-PAR"=nettoPar, "Schläge"=strokes, "Über PAR"=overPar,
+                                                "Über Netto-PAR"=overNettoPar, "Stableford-Punkte"=stablefordPoints),
                 rownames = FALSE,
                 filter = "none", # no filter options
                 selection = "none", # no selection of rows
                 options = list(pageLength = 18, # show all entries
                                dom="t" # show only table (no search field, no page scroll, etc.)
                                ),
-                editable = list(target = "column", disable = list(columns = c(0:4,6:8)))
+                editable = TRUE
                 )
-      
-    }
   )
+  
+  # Recalculate table values, when the number of strokes is changed 
+  observeEvent(input$courseInformationTable_cell_edit, {
+    
+    # when cell is edited, create 
+    info <- input$courseInformationTable_cell_edit
+    str(info)
+    i = info$row
+    print(i)
+    j = info$col
+    print(j)
+    v = info$value
+    print(v)
+    
+    # describe what happens in case of event
+    courseInformation$data[i, j+1]<<-v # overwrite value in table with user input
+    courseInformation$data<-courseInformation$data%>% # recalculate values
+                              mutate(overPar = strokes-par,
+                                     overNettoPar = strokes-nettoPar)%>%
+                              mutate(stablefordPoints = map_dbl(overNettoPar, calculate_stableford_points))
+    
+  })
   
 }
 
