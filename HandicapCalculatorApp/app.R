@@ -51,7 +51,13 @@ ui <- fluidPage(
           tableOutput("generalTeeInformationTable"),
           
           # output table with general information about the selected course
-          DTOutput("courseInformationTable")
+          DTOutput("courseInformationTable"),
+          
+          # output text with summary stats
+          h5(htmlOutput("summaryStats")),
+          
+          # output text with score differential
+          h5(htmlOutput("scoreDifferential"))
            
         )
     )
@@ -84,7 +90,7 @@ server <- function(input, output) {
   courseInformation <- reactiveValues(data=NULL)
   
   # reactive table with course information which is updated whenever user updates input variables
-  newData <- reactive({
+  newCourseData <- reactive({
     
     # filter course data based on input values
     newCourseData <- COURSE_INFORMATION%>%
@@ -111,7 +117,20 @@ server <- function(input, output) {
   observe({
     
     # update course information data
-    courseInformation$data = newData()
+    courseInformation$data = newCourseData()
+    
+  })
+  
+  # reactive summary stats table
+  summaryStats<-reactive({
+    
+    courseInformation$data%>%
+      summarise(
+        strokesTotal = sum(strokes),
+        overParTotal = sum(overPar),
+        overNettoParTotal = sum(overNettoPar),
+        stablefordPointsTotal = sum(stablefordPoints)
+      )
     
   })
   
@@ -190,6 +209,33 @@ server <- function(input, output) {
                               mutate(overPar = strokes-par,
                                      overNettoPar = strokes-nettoPar)%>%
                               mutate(stablefordPoints = map_dbl(overNettoPar, calculate_stableford_points))
+    
+  })
+  
+  # create summary Stats
+  output$summaryStats<-renderUI({
+    
+    HTML(paste("Anzahl Schläge:", summaryStats()$strokesTotal,
+               " | Über PAR:",summaryStats()$overParTotal,
+               " | Über Netto-PAR:",summaryStats()$overNettoParTotal,
+               " | Stabelford Punkte:",summaryStats()$stablefordPointsTotal
+               ))
+    
+  })
+  
+  # calculate score differential
+  output$scoreDifferential<-renderUI({
+    
+    # load relevant variables 
+    par<-teeData()$par
+    courseRating<-teeData()$courseRating
+    slopeRating<-teeData()$slopeRating
+    courseHandicap<-courseHandicap()
+    stablefordPoints<-summaryStats()$stablefordPointsTotal
+    
+    scoreDifferential<-round((par+courseHandicap-(stablefordPoints-36)-courseRating)/slopeRating*113,1)
+    
+    HTML(paste("Score Differential:", scoreDifferential))
     
   })
   
