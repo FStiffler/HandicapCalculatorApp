@@ -1,14 +1,75 @@
+/* background color for input column in course information table */
+.container-fluid .row:nth-child(5) {
 
+  display: flex;
+  align-items: center;
 
+}
+ 
+/* only white row in course information table */
 tr.odd { background-color: white; }
 tr.even { background-color: white; }
 
+/* background color for input column in course information table */
 #courseInformationTable tbody tr td:nth-child(6){
   background-color: #dbc21f;
   font-weight: bold;
 }
 
-h4 {
-  color: red;
+/* alignment of summary stats divs */
+#summaryStats {
+
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    padding-bottom: 100pt;
+
 }
 
+#summaryStats div {
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+}
+
+/* alignment of score differential */
+#scoreDifferential {
+
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+
+}
+
+#scoreDifferential div {
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+}
+
+/* define styles for statnames*/
+.statName {
+
+  font-size: 11pt;
+  font-weight: bold;
+
+}
+
+/* define styles for statTypes*/
+.statType1 {
+
+  font-size: 20pt;
+  font-weight: bold;
+
+}
+
+.statType2 {
+
+  font-size: 25pt;
+  font-weight: bold;
+
+}

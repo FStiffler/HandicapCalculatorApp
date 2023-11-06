@@ -16,50 +16,94 @@ ui <- fluidPage(
     ),
 
     # application title
-    titlePanel("Handicap Rechner"),
+    titlePanel("Rundenrechner - Score Differential"),
 
-    # sidebar
-    sidebarLayout(
-      
-        # input panel
-        sidebarPanel(
-            
-            # numeric input for handicap index
-            numericInput(inputId = "handicapIndex",
-                         label = "Aktuelles Handicap",
-                         value = 54,
-                         min = 0,
-                         max = 54,
-                         step = 1),
-            
-            # single choice for golf club selection
-            selectInput(inputId = "club",
-                        label = "Golfklub",
-                        choices = LIST_OF_CLUBS),
-            
-            # single choice for tee selection
-            selectInput(inputId = "tee",
-                        label = "Abschlag",
-                        choices = LIST_OF_TEES),
+    # first row for input parameters
+    fluidRow(
+                    
+                   # first column element
+                   column(1,
+                   
+                   # numeric input for handicap index
+                   numericInput(inputId = "handicapIndex",
+                                label = "Handicap",
+                                value = 54,
+                                min = 0,
+                                max = 54,
+                                step = 1)
+                   ),
+                   
+                   # second column element
+                   column(2,
+                   
+                   # single choice for golf club selection
+                   selectInput(inputId = "club",
+                               label = "Golfklub",
+                               choices = LIST_OF_CLUBS)
+                   ),
+                   
+                   # first column element
+                   column(2,
+                   
+                   
+                   # single choice for tee selection
+                   selectInput(inputId = "tee",
+                               label = "Abschlag",
+                               choices = LIST_OF_TEES)
+                   )
         ),
-
-        # output panel
-        mainPanel(
-          
-          # output table with general tee information depending on inputs
-          h4(textOutput("generalTeeInformationTitle")),
-          tableOutput("generalTeeInformationTable"),
-          
-          # output table with general information about the selected course
-          DTOutput("courseInformationTable"),
-          
-          # output text with summary stats
-          h5(htmlOutput("summaryStats")),
-          
-          # output text with score differential
-          h5(htmlOutput("scoreDifferential"))
-           
-        )
+    
+    # second row for course information
+    fluidRow(
+      
+      # first column element
+      column(4,
+             
+             # output table with general tee information depending on inputs
+             h4(textOutput("generalTeeInformationTitle"))
+             )
+      ),
+    
+    # third row for course information
+    fluidRow(
+      
+      # first column element
+      column(8,
+             
+             tableOutput("generalTeeInformationTable")
+      )
+    ),
+    
+    # fourth row for course information
+    fluidRow(
+      
+      # first column element
+      column(6, 
+             
+             # output table with general information about the selected course
+             DTOutput("courseInformationTable")
+      ),
+      
+      # second column element
+      column(6,
+             
+             # first fluid row inside column
+             fluidRow(
+               
+               # output text with summary stats
+               htmlOutput("summaryStats"),
+               
+             ),
+             
+             # second fluid row inside column
+             fluidRow(
+               
+               # output text with score differential
+               htmlOutput("scoreDifferential")
+               
+             )
+      )
+      
     )
 )
 
@@ -152,25 +196,13 @@ server <- function(input, output) {
     exp = {
     
     # create table
-    res <- data.frame(values=c(as.character(input$handicapIndex),
-                               as.character(teeData()$courseRating),
-                               as.character(teeData()$slopeRating),
-                               as.character(teeData()$par),
-                               as.character(courseHandicap())
-                               )
-                      )
-    rowNames<-c("Aktuelles Handicap", "Course Rating", "Slope Rating", "PAR", "Spielvorgabe")
-    row.names(res)<-rowNames
+    teeData()%>%
+        select(par, courseRating, slopeRating)%>%
+        mutate_if(is.double, as.character)%>%
+        rename(PAR=par, "Course Rating"=courseRating, "Slope Rating"=slopeRating)%>%
+        add_column(Spielvorgabe=as.character(courseHandicap()))
     
-    # print final table
-    res
-    
-    },
-    
-    # adjust other table parameters
-    rownames = TRUE,
-    colnames = FALSE,
-    striped = TRUE
+    }
     )
   
   # create output table with course information per hole
@@ -215,11 +247,25 @@ server <- function(input, output) {
   # create summary Stats
   output$summaryStats<-renderUI({
     
-    HTML(paste("Anzahl Schläge:", summaryStats()$strokesTotal,
-               " | Über PAR:",summaryStats()$overParTotal,
-               " | Über Netto-PAR:",summaryStats()$overNettoParTotal,
-               " | Stabelford Punkte:",summaryStats()$stablefordPointsTotal
+    HTML(paste("
+               <div>
+                <div class='statName'>Anzahl Schläge</div>
+                <div class='statType1'>",summaryStats()$strokesTotal,"</div>
+               </div>
+               <div>
+                <div class='statName'>Über PAR</div>
+                <div class='statType1'>",summaryStats()$overParTotal,"</div>
+               </div>
+               <div>
+                <div class='statName'>Über Netto-PAR</div>
+                <div class='statType1'>",summaryStats()$overNettoParTotal,"</div>
+              </div>
+              <div>
+                <div class='statName'>Stabelford Punkte</div>
+                <div class='statType1'>",summaryStats()$stablefordPointsTotal,"</div>
+              </div>"
                ))
+    
     
   })
   
@@ -235,7 +281,12 @@ server <- function(input, output) {
     
     scoreDifferential<-round((par+courseHandicap-(stablefordPoints-36)-courseRating)/slopeRating*113,1)
     
-    HTML(paste("Score Differential:", scoreDifferential))
+    HTML(paste("
+              <div>
+                <div class='statName'>Score Differential</div>
+                <div class='statType2'>",scoreDifferential,"</div>
+               </div>
+               "))
     
   })
   
