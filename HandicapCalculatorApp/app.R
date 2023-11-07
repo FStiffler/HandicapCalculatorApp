@@ -7,107 +7,124 @@ library(DT)
 source("helperFiles/loadParameters.R")
 source("helperFiles/helperFunctions.R")
 
-# define UI 
+# define UI ----
 ui <- fluidPage(
   
     # include custom style sheet
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "customStyles.css")
     ),
-
-    # application title
-    titlePanel("Rundenrechner - Score Differential"),
-
-    # first row for input parameters
-    fluidRow(
-                    
-                   # first column element
-                   column(1,
-                   
-                   # numeric input for handicap index
-                   numericInput(inputId = "handicapIndex",
-                                label = "Handicap",
-                                value = 54,
-                                min = 0,
-                                max = 54,
-                                step = 1)
-                   ),
-                   
-                   # second column element
-                   column(2,
-                   
-                   # single choice for golf club selection
-                   selectInput(inputId = "club",
-                               label = "Golfklub",
-                               choices = LIST_OF_CLUBS)
-                   ),
-                   
-                   # first column element
-                   column(2,
-                   
-                   
-                   # single choice for tee selection
-                   selectInput(inputId = "tee",
-                               label = "Abschlag",
-                               choices = LIST_OF_TEES)
-                   )
-        ),
     
-    # second row for course information
-    fluidRow(
-      
-      # first column element
-      column(4,
-             
-             # output table with general tee information depending on inputs
-             h4(textOutput("generalTeeInformationTitle"))
-             )
-      ),
-    
-    # third row for course information
-    fluidRow(
-      
-      # first column element
-      column(8,
-             
-             tableOutput("generalTeeInformationTable")
-      )
-    ),
-    
-    # fourth row for course information
-    fluidRow(
-      
-      # first column element
-      column(6, 
-             
-             # output table with general information about the selected course
-             DTOutput("courseInformationTable")
-      ),
-      
-      # second column element
-      column(6,
-             
-             # first fluid row inside column
-             fluidRow(
+    # create page with navbar
+    navbarPage("Handicap Rechner",
                
-               # output text with summary stats
-               htmlOutput("summaryStats"),
+               # create first tab for calculation of score differential ----
+               tabPanel("Runden Rechner - Score Differential",
+                        
+                        # first row for input parameters 
+                        fluidRow(
+                          
+                          # first column element 
+                          column(1,
+                                 
+                                 # numeric input for handicap index
+                                 numericInput(inputId = "handicapIndex",
+                                              label = "Handicap",
+                                              value = 54,
+                                              min = 0,
+                                              max = 54,
+                                              step = 1)
+                          ),
+                          
+                          # second column element 
+                          column(2,
+                                 
+                                 # single choice for golf club selection
+                                 selectInput(inputId = "club",
+                                             label = "Golfklub",
+                                             choices = LIST_OF_CLUBS)
+                          ),
+                          
+                          # third column element 
+                          column(2,
+                                 
+                                 
+                                 # single choice for tee selection
+                                 selectInput(inputId = "tee",
+                                             label = "Abschlag",
+                                             choices = LIST_OF_TEES)
+                          )
+                        ),
+                        
+                        # second row for course information 
+                        fluidRow(
+                                 
+                                 # output table with general tee information depending on inputs
+                                 h4(textOutput("generalTeeInformationTitle"))
+                                 
+                        ),
+                        
+                        # third row for course information 
+                        fluidRow(
+                                 
+                                 tableOutput("generalTeeInformationTable")
+                        ),
+                        
+                        # fourth row for course information 
+                        fluidRow(
+                          
+                          # first column element 
+                          column(6, 
+                                 
+                                 # output table with general information about the selected course
+                                 DTOutput("courseInformationTable")
+                          ),
+                          
+                          # second column element 
+                          column(6,
+                                 
+                                 # first fluid row inside column
+                                 fluidRow(
+                                   
+                                   # output text with summary stats
+                                   htmlOutput("summaryStats"),
+                                   
+                                 ),
+                                 
+                                 # second fluid row inside column
+                                 fluidRow(
+                                   
+                                   # output text with score differential
+                                   htmlOutput("scoreDifferential")
+                                   
+                                   )
+                                 )
+                          )
+                        ),
                
-             ),
-             
-             # second fluid row inside column
-             fluidRow(
+               # create second tab for calculation of handicap ----
+               tabPanel("Handicap Rechner",
+                        
+                        
+                        h4("Test")
+                        
+                        
+                        )
                
-               # output text with score differential
-               htmlOutput("scoreDifferential")
                
-             )
-      )
-      
+               )
     )
-)
 
-# Define server logic
+
+    
+    
+    
+    
+   
+    
+    
+
+# define server logic ----
 server <- function(input, output) {
   
   ## reactive variables
@@ -292,5 +309,5 @@ server <- function(input, output) {
   
 }
 
-# run the application 
+# run the application ----
 shinyApp(ui = ui, server = server)
