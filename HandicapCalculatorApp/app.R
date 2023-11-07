@@ -116,65 +116,7 @@ ui <- fluidPage(
                                  
                                  ),
                         
-                        # second row for input parameters
-                        fluidRow(
-                          
-                          # first subrow
-                          fluidRow(
-                            
-                            # first column
-                            column(2, 
-                                   
-                                   # titel
-                                   h4("Spieler Hinzufügen:"),
-                                   
-                                   # text input for name
-                                   textInput("newPlayerName", "Name des Spielers")
-                                   
-                                   ),
-                            
-                            # second column
-                            column(2, 
-                                   
-                                   actionButton(inputId="addPlayer",
-                                                label="Spieler Hinzufügen"
-                                                )
-                                   
-                                   )
-                            )
-                          ),
-                        
-                        # third row for input parameters
-                        fluidRow(
-                          
-                          # first subrow
-                          fluidRow(
-                            
-                            # first column
-                            column(2, 
-                                   
-                                   # titel
-                                   h4("Spieler Löschen:"),
-                                   
-                                   # select input for player to be deleted
-                                   selectInput(inputId="playerToDelete",
-                                               label="Name des Spielers",
-                                               choices=c("",LIST_OF_PLAYERS))
-                                   
-                            ),
-                            
-                            # second column
-                            column(2, 
-                                   
-                                   actionButton(inputId="deletePlayer",
-                                                label="Spieler Löschen"
-                                   )
-                                   
-                            )
-                          )
-                        ),
-                        
-                        # second row for output table
+                        # third row for output table
                         fluidRow(
                           
                           # show handicap results of selected player
@@ -184,7 +126,71 @@ ui <- fluidPage(
                           rHandsontableOutput("handicapResults")
                           
                           )
-                        )
+                        ),
+               
+               # create a new area with app management options ----
+               navbarMenu("Einstellungen",
+                          
+                          # create new area with player management options ----
+                          tabPanel("Spieler Management",
+                                   
+                                   # second row for input parameters
+                                   fluidRow(
+                                     
+                                     # first subrow
+                                     fluidRow(
+                                       
+                                       # first column
+                                       column(2, 
+                                              
+                                              # titel
+                                              h4("Spieler Hinzufügen:"),
+                                              
+                                              # text input for name
+                                              textInput("newPlayerName", "Name des Spielers")
+                                              
+                                       ),
+                                       
+                                       # second column
+                                       column(2, 
+                                              
+                                              actionButton(inputId="addPlayer",
+                                                           label="Spieler Hinzufügen"
+                                              )
+                                              
+                                       )
+                                     )
+                                   ),
+                                   
+                                   # third row for input parameters
+                                   fluidRow(
+                                     
+                                     # first subrow
+                                     fluidRow(
+                                       
+                                       # first column
+                                       column(2, 
+                                              
+                                              # titel
+                                              h4("Spieler Löschen:"),
+                                              
+                                              # select input for player to be deleted
+                                              selectInput(inputId="playerToDelete",
+                                                          label="Name des Spielers",
+                                                          choices=c("",LIST_OF_PLAYERS))
+                                              
+                                       ),
+                                       
+                                       # second column
+                                       column(2, 
+                                              
+                                              actionButton(inputId="deletePlayer",
+                                                           label="Spieler Löschen")
+                                              )
+                                       )
+                                     )
+                                   )
+                          )
                )
     )
 
@@ -377,9 +383,6 @@ server <- function(input, output) {
   
   # server logic for handicap calculation ----
   
-  # player list as reactive value
-  listOfPlayers<-reactiveVal(LIST_OF_PLAYERS)
-  
   # create reactive expression to filter handicap results
   handicapResults <- reactive({
     HANDICAP_RESULTS%>%
@@ -396,6 +399,11 @@ server <- function(input, output) {
                   stretchH = "all")
     
   })
+  
+  # server logic for player management ----
+  
+  # player list as reactive value
+  listOfPlayers<-reactiveVal(LIST_OF_PLAYERS)
   
   # add player to list
   observeEvent(input$addPlayer, {
