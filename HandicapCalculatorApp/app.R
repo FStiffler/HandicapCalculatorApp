@@ -144,6 +144,36 @@ ui <- fluidPage(
                             )
                           ),
                         
+                        # third row for input parameters
+                        fluidRow(
+                          
+                          # first subrow
+                          fluidRow(
+                            
+                            # first column
+                            column(2, 
+                                   
+                                   # titel
+                                   h4("Spieler Löschen:"),
+                                   
+                                   # select input for player to be deleted
+                                   selectInput(inputId="playerToDelete",
+                                               label="Name des Spielers",
+                                               choices=c("",LIST_OF_PLAYERS))
+                                   
+                            ),
+                            
+                            # second column
+                            column(2, 
+                                   
+                                   actionButton(inputId="deletePlayer",
+                                                label="Spieler Löschen"
+                                   )
+                                   
+                            )
+                          )
+                        ),
+                        
                         # second row for output table
                         fluidRow(
                           
@@ -376,8 +406,9 @@ server <- function(input, output) {
     # make it the new list
     listOfPlayers(newList)
     
-    # update select input
+    # update select inputs
     updateSelectInput(inputId="player", choices = listOfPlayers())
+    updateSelectInput(inputId="playerToDelete", choices = c("",listOfPlayers()))
     
     # remove textinput from input field
     updateTextInput(inputId = "newPlayerName", value = "")
@@ -387,6 +418,27 @@ server <- function(input, output) {
     
     # show notification that player was successfully added
     showNotification("Neuer Spieler erfolgreich hinzugefügt", closeButton = TRUE)
+    
+  })
+  
+  # delete player from list
+  observeEvent(input$deletePlayer, {
+    
+    # create new list of players
+    newList <- listOfPlayers()[listOfPlayers() != input$playerToDelete]
+    
+    # make it the new list
+    listOfPlayers(newList)
+    
+    # update select inputs
+    updateSelectInput(inputId="player", choices = listOfPlayers())
+    updateSelectInput(inputId="playerToDelete", choices = c("",listOfPlayers()))
+    
+    # save new player in players list
+    write_csv(data.frame(player=listOfPlayers()), "data/listOfPlayers.csv")
+    
+    # show notification that player was successfully deleted
+    showNotification("Spieler wurder erfolgreich gelöscht", closeButton = TRUE)
     
   })
   
