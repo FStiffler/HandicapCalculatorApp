@@ -2,6 +2,7 @@
 library(shiny)
 library(tidyverse)
 library(DT)
+library(rhandsontable)
 
 # load helper files
 source("helperFiles/loadParameters.R")
@@ -105,8 +106,37 @@ ui <- fluidPage(
                # create second tab for calculation of handicap ----
                tabPanel("Handicap Rechner",
                         
-                        
-                        h4("Test")
+                        # first row for input parameters
+                        fluidRow(
+                          
+                          
+                          # first column
+                          column(2,
+                                 
+                                 # select player
+                                 selectInput(inputId="player",
+                                             label="Spieler wählen",
+                                             choices=LIST_OF_PLAYERS)
+                                 
+                                 
+                                 ),
+                          
+                          # second column
+                          column(6,
+                                 
+                                 
+                                 # show handicap results of selected player
+                                 h4("Stammblatt"),
+                                 
+                                 # show handicap results of selected player
+                                 rHandsontableOutput("handicapResults")
+                                 
+                                 
+                          ),
+                          
+                          
+                          
+                        )
                         
                         
                         )
@@ -116,16 +146,10 @@ ui <- fluidPage(
     )
 
 
-    
-    
-    
-    
-   
-    
-    
-
 # define server logic ----
 server <- function(input, output) {
+  
+  # server logic for score differential calculation ----
   
   ## reactive variables
   
@@ -304,6 +328,26 @@ server <- function(input, output) {
                 <div class='statType2'>",scoreDifferential,"</div>
                </div>
                "))
+    
+  })
+  
+  
+  # server logic for handicap calculation ----
+  
+  # create reactive expression to filter handicap results
+  handicapResults <- reactive({
+    HANDICAP_RESULTS%>%
+      filter(player==input$player)
+  })
+  
+  # show handicap results
+  output$handicapResults <- renderRHandsontable({
+    
+    # show handicap results
+    rhandsontable(handicapResults()%>%
+                    select(-player)%>%
+                    rename(Ort = club, Abschlag = tee, Datum = date, "Score Differential" = scoreDifferential),
+                  stretchH = "all")
     
   })
   
