@@ -108,40 +108,53 @@ ui <- fluidPage(
                         
                         # first row for input parameters
                         fluidRow(
-                          
-                          
-                          # first column
-                          column(2,
                                  
                                  # select player
                                  selectInput(inputId="player",
                                              label="Spieler wählen",
                                              choices=LIST_OF_PLAYERS)
                                  
-                                 
                                  ),
+                        
+                        # second row for input parameters
+                        fluidRow(
                           
-                          # second column
-                          column(6,
-                                 
-                                 
-                                 # show handicap results of selected player
-                                 h4("Stammblatt"),
-                                 
-                                 # show handicap results of selected player
-                                 rHandsontableOutput("handicapResults")
-                                 
-                                 
+                          # first subrow
+                          fluidRow(
+                            
+                            # first column
+                            column(2, 
+                                   
+                                   # titel
+                                   h4("Spieler Hinzufügen:"),
+                                   
+                                   # text input for name
+                                   textInput("newPlayerName", "Name des Spielers")
+                                   
+                                   ),
+                            
+                            # second column
+                            column(2, 
+                                   
+                                   actionButton(inputId="addPlayer",
+                                                label="Spieler Hinzufügen"
+                                                )
+                                   
+                                   )
+                            )
                           ),
-                          
-                          
-                          
-                        )
                         
-                        
+                        # second row for output table
+                        fluidRow(
+                          
+                          # show handicap results of selected player
+                          h4("Stammblatt"),
+                          
+                          # show handicap results of selected player
+                          rHandsontableOutput("handicapResults")
+                          
+                          )
                         )
-               
-               
                )
     )
 
@@ -334,6 +347,9 @@ server <- function(input, output) {
   
   # server logic for handicap calculation ----
   
+  # player list as reactive value
+  listOfPlayers<-reactiveVal(LIST_OF_PLAYERS)
+  
   # create reactive expression to filter handicap results
   handicapResults <- reactive({
     HANDICAP_RESULTS%>%
@@ -350,6 +366,30 @@ server <- function(input, output) {
                   stretchH = "all")
     
   })
+  
+  # add player to list
+  observeEvent(input$addPlayer, {
+    
+    # create new list of players
+    newList <- c(listOfPlayers(), input$newPlayerName)
+    
+    # make it the new list
+    listOfPlayers(newList)
+    
+    # update select input
+    updateSelectInput(inputId="player", choices = listOfPlayers())
+    
+    # remove textinput from input field
+    updateTextInput(inputId = "newPlayerName", value = "")
+    
+    # save new player in players list
+    write_csv(data.frame(player=listOfPlayers()), "data/listOfPlayers.csv")
+    
+    # show notification that player was successfully added
+    showNotification("Neuer Spieler erfolgreich hinzugefügt", closeButton = TRUE)
+    
+  })
+  
   
 }
 
