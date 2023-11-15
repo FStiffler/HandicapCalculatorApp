@@ -116,6 +116,83 @@ ui <- fluidPage(
                                  
                                  ),
                         
+                        # second row for input parameters
+                        fluidRow(
+                          
+                          # first subrow
+                          fluidRow( 
+                            
+                            # title
+                            h4("Neue Runde erfassen:")
+                            
+                            
+                          ),
+                          
+                          # second subrow
+                          fluidRow(
+                            
+                            # first column
+                            column(2,
+                                   
+                                   # single choice for golf club selection
+                                   selectInput(inputId = "club2",
+                                               label = "Golfklub",
+                                               choices = LIST_OF_CLUBS)
+                                   
+                            ),
+                            
+                            # second column
+                            column(2,
+                                   
+                                   # single choice for tee selection
+                                   selectInput(inputId = "tee2",
+                                               label = "Abschlag",
+                                               choices = LIST_OF_TEES)
+                                   
+                            ),
+                            
+                            # third column
+                            column(2,
+                                   
+                                   # date of round
+                                   dateInput(inputId = "date",
+                                               label = "Datum")
+                                               
+                                   
+                            ),
+                            
+                            
+                            # fourth column
+                            column(2,
+                                   
+                                   # scored score differential
+                                   numericInput(inputId = "roundScoreDifferential",
+                                             label = "Score Differential",
+                                             value = 54,
+                                             min = 0,
+                                             max = 1, 
+                                             step= 1)
+                                   
+                                   
+                            ),
+                            
+                            # fifth column
+                            column(2,
+                                   
+                                   # add new score to score sheet
+                                   actionButton(inputId="addScore",
+                                                label="Runde Hinzufügen"
+                                   )
+                                   
+                                   
+                            ),
+                            
+                            
+                            
+                          )
+                          
+                        ),
+                        
                         # third row for output table
                         fluidRow(
                           
@@ -123,7 +200,7 @@ ui <- fluidPage(
                           h4("Stammblatt"),
                           
                           # show handicap results of selected player
-                          rHandsontableOutput("handicapResults")
+                          tableOutput("scoreSheet")
                           
                           )
                         ),
@@ -383,20 +460,49 @@ server <- function(input, output) {
   
   # server logic for handicap calculation ----
   
-  # create reactive expression to filter handicap results
-  handicapResults <- reactive({
-    HANDICAP_RESULTS%>%
+  # create reactive value for scoreSheet
+  scoreSheetVal <- reactiveVal(NULL)
+  
+  # create reactive expression to filter handicap results based on input
+  scoreSheet <- reactive({
+    SCORE_SHEET%>%
       filter(player==input$player)
   })
   
+  # assign reactive expression to reactive value
+  observe({
+    
+    scoreSheetVal(scoreSheet())
+    
+  })
+  
+  # assign reactive expression to 
+  
   # show handicap results
-  output$handicapResults <- renderRHandsontable({
+  output$scoreSheet <- renderTable({
     
     # show handicap results
-    rhandsontable(handicapResults()%>%
-                    select(-player)%>%
-                    rename(Ort = club, Abschlag = tee, Datum = date, "Score Differential" = scoreDifferential),
-                  stretchH = "all")
+    scoreSheetVal()%>%
+      select(-player)%>%
+      mutate(date=format(date, "%Y-%m-%d"))%>%
+      rename(Golfklub = club, Abschlag = tee, Datum = date, "Score Differential" = scoreDifferential)
+    
+  },
+  rownames = TRUE,
+  width = "50%"
+  
+  )
+  
+  # update score sheet when new score is added
+  observeEvent(input$addScore,{
+    
+    # add new row to score sheet
+    newScoreSheet<-scoreSheetVal()%>%
+      add_row(club=input$club2, tee=input$tee2, date=input$date, scoreDifferential=input$roundScoreDifferential)
+    
+    # update score sheet
+    scoreSheetVal(newScoreSheet)
+    
     
   })
   
