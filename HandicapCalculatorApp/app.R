@@ -193,14 +193,31 @@ ui <- fluidPage(
                           
                         ),
                         
-                        # third row for output table
+                        # third row for output
                         fluidRow(
                           
-                          # show handicap results of selected player
-                          h4("Stammblatt"),
+                          # first column with output table
+                          column(8,
+                                 
+                                 # show handicap results of selected player
+                                 h4("Stammblatt"),
+                                 
+                                 # show handicap results of selected player
+                                 tableOutput("scoreSheet")
+                                 
+                                 
+                                 ),
                           
-                          # show handicap results of selected player
-                          tableOutput("scoreSheet")
+                          # second column with current handicap
+                          column(4,
+                                 
+                                 # output text with final handicap
+                                 htmlOutput("finalHandicap")
+                                 
+                                 
+                          ),
+                          
+                          
                           
                           )
                         ),
@@ -502,6 +519,32 @@ server <- function(input, output) {
     
     # update score sheet
     scoreSheetVal(newScoreSheet)
+    
+    
+  })
+  
+  # handicap as reactive object
+  handicap <- reactive({
+    
+    # extract relevant variables for calculation
+    inputValues<-scoreSheetVal()%>%
+      select(date, scoreDifferential)
+    
+    # calculate handicap
+    calculate_handicap(inputValues)
+    
+  })
+  
+  # calculate finale handicap
+  output$finalHandicap <- renderUI({
+    
+    HTML(paste("
+               <div>
+                <div class='statName'>Handicap</div>
+                <div class='statType2'>",handicap(),"</div>
+               </div>
+               "
+    ))
     
     
   })

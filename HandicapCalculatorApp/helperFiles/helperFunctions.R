@@ -100,3 +100,80 @@ calculate_stableford_points <- function(overNettoPar){
   }
   
 }
+
+#' Calculate Handicap
+#' 
+#' Calculates handicap index of a player based on score differential based on the following source: https://www.randa.org/roh/the-rules-of-handicapping/rule-5#5_1
+#'
+#' @param inputValues data frame with score differentials and the dates, when the score differentials where scored
+#'
+#' @return the new handicap
+#' @export
+#'
+#' @examples 
+#' 
+#' inputValues <- data.frame(
+#'                           date = sample(seq(as.Date('2020/01/01'), as.Date('2023/12/31'), by="day"), 21),
+#'                           scoreDifferential = sample(seq(0,50, 0.1), 21))
+#' calculate_handicap(inputValues)
+#' 
+calculate_handicap <- function(inputValues){
+  
+  # calculate handicap for different numbers of score differential entries
+  if(length(inputValues$scoreDifferential)<=3){
+    
+    handicap <- min(inputValues$scoreDifferential)-2
+    
+  } else if(length(inputValues$scoreDifferential)==4){
+    
+    handicap <- min(inputValues$scoreDifferential)-1
+    
+  } else if(length(inputValues$scoreDifferential)==5){
+    
+    handicap <- min(inputValues$scoreDifferential)
+    
+  } else if(length(inputValues$scoreDifferential)==6){
+    
+    handicap <- round(mean(sort(inputValues$scoreDifferential)[c(1,2)]), 1)-1
+    
+  } else if(length(inputValues$scoreDifferential)<=8){
+    
+    handicap <- round(mean(sort(inputValues$scoreDifferential)[c(1,2)]), 1)
+    
+  } else if(length(inputValues$scoreDifferential)<=11){
+    
+    handicap <- round(mean(sort(inputValues$scoreDifferential)[c(1:3)]), 1)
+    
+  } else if(length(inputValues$scoreDifferential)<=14){
+    
+    handicap <- round(mean(sort(inputValues$scoreDifferential)[c(1:4)]), 1)
+    
+  } else if(length(inputValues$scoreDifferential)<=16){
+    
+    handicap <- round(mean(sort(inputValues$scoreDifferential)[c(1:5)]), 1)
+    
+  } else if(length(inputValues$scoreDifferential)<=18){
+    
+    handicap <- round(mean(sort(inputValues$scoreDifferential)[c(1:6)]), 1)
+    
+  } else if(length(inputValues$scoreDifferential)==19){
+    
+    handicap <- round(mean(sort(inputValues$scoreDifferential)[c(1:7)]), 1)
+    
+  } else if(length(inputValues$scoreDifferential)>=20){
+    
+    # arrange obs by date
+    baseData<-inputValues%>%
+      arrange(date)
+    
+    # extract only handicap relevant scores
+    baseData<-tail(baseData, 20)
+    
+    # calculate handicap
+    handicap <- round(mean(sort(baseData$scoreDifferential)[c(1:8)]), 1)
+    
+  }
+  
+  return(handicap)
+  
+}
