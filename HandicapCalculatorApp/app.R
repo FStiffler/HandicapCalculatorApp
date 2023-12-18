@@ -231,14 +231,15 @@ ui <- fluidPage(
                                    # second row for input parameters
                                    fluidRow(
                                      
+                                     # titel
+                                     h4("Spieler Hinzufügen:"),
+                                     
                                      # first subrow
                                      fluidRow(
                                        
                                        # first column
                                        column(2, 
                                               
-                                              # titel
-                                              h4("Spieler Hinzufügen:"),
                                               
                                               # text input for name
                                               textInput("newPlayerName", "Name des Spielers")
@@ -259,14 +260,15 @@ ui <- fluidPage(
                                    # third row for input parameters
                                    fluidRow(
                                      
+                                     # titel
+                                     h4("Spieler Löschen:"),
+                                     
                                      # first subrow
                                      fluidRow(
                                        
                                        # first column
                                        column(2, 
                                               
-                                              # titel
-                                              h4("Spieler Löschen:"),
                                               
                                               # select input for player to be deleted
                                               selectInput(inputId="playerToDelete",
